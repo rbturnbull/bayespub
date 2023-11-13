@@ -161,3 +161,9 @@ cython_debug/
 
 *.csv
 *.bk
+Llama-2-13b-chat-hf.isbayes.csv.bk10k
+langchain/
+pinecone.py
+tagging-all.py
+tagging.py
+torch-deps.txt
