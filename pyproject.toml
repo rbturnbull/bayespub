@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "bayesian-langchain"
+version = "0.1.0"
+description = ""
+authors = ["Robert Turnbull"]
+license = "Apache-2.0"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.13"
+torch = "=2.0.0"
+transformers = "^4.31.0"
+accelerate = "^0.24.1"
+einops = "^0.7.0"
+langchain = "^0.0.329"
+bitsandbytes = "^0.41.1"
+scipy = "^1.11.3"
+numexpr = "^2.8.7"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
