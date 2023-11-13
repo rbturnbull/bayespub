@@ -1,6 +1,6 @@
 import typer
 from typing_extensions import Annotated
-from .llama import llama2_llm
+from .huggingface import hugging_face_llm
 
 app = typer.Typer()
 
@@ -10,7 +10,7 @@ def llama2(
     prompt: str, 
     hf_auth:Annotated[str, typer.Argument(envvar=["HF_AUTH"])],
 ):
-    llm = llama2_llm(hf_auth)
+    llm = hugging_face_llm(hf_auth)
     print(llm(prompt))
 
 

@@ -3,7 +3,7 @@ import transformers
 from langchain.llms import HuggingFacePipeline
 
 
-def llama2_hugging_face_pipeline(hf_auth:str, model_id='meta-llama/Llama-2-13b-chat-hf', **kwargs):
+def hugging_face_pipeline(hf_auth:str, model_id='meta-llama/Llama-2-13b-chat-hf', **kwargs):
     """ Adapted from https://www.pinecone.io/learn/llama-2/ """
 
     # set quantization configuration to load large model with less GPU memory
@@ -50,7 +50,7 @@ def llama2_hugging_face_pipeline(hf_auth:str, model_id='meta-llama/Llama-2-13b-c
     return generate_text
 
 
-def llama2_llm(hf_auth:str, **kwargs) -> HuggingFacePipeline:
-    llm = HuggingFacePipeline(pipeline=llama2_hugging_face_pipeline(hf_auth, **kwargs))
+def hugging_face_llm(hf_auth:str, **kwargs) -> HuggingFacePipeline:
+    llm = HuggingFacePipeline(pipeline=hugging_face_pipeline(hf_auth, **kwargs))
     return llm
 
