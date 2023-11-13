@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "bayesian-langchain"
+name = "bayespub"
 version = "0.1.0"
-description = ""
+description = "Using LLMs to infer trends in Bayesian analysis in academic literature"
 authors = ["Robert Turnbull"]
 license = "Apache-2.0"
 readme = "README.md"
