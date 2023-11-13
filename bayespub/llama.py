@@ -51,7 +51,6 @@ def llama2_hugging_face_pipeline(hf_auth:str, model_id='meta-llama/Llama-2-13b-c
 
 
 def llama2_llm(hf_auth:str, **kwargs) -> HuggingFacePipeline:
-    llm = HuggingFacePipeline(pipeline=generate_text)
+    llm = HuggingFacePipeline(pipeline=llama2_hugging_face_pipeline(hf_auth, **kwargs))
     return llm
-
 
