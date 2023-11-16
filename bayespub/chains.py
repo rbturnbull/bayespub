@@ -1,13 +1,14 @@
 
 from pathlib import Path
+from langchain.chat_models import ChatOpenAI
 
 from .huggingface import hugging_face_llm
 from .io import PubMedParser
 from .prompts import is_bayesian_prompt
 
-def is_bayesian_chain(base_path:Path, hf_auth:str="", **kwargs):
+def is_bayesian_chain(base_path:Path, hf_auth:str="", use_hf:bool=False, **kwargs):
     parser = PubMedParser(base_path)
     prompt = is_bayesian_prompt()
-    llm = hugging_face_llm(hf_auth, **kwargs)
+    llm = hugging_face_llm(hf_auth, **kwargs) if use_hf else ChatOpenAI()
 
     return parser | prompt | llm
