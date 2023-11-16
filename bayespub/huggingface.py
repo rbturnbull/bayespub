@@ -1,10 +1,13 @@
 import torch
 import transformers
 from langchain.llms import HuggingFacePipeline
+import os
 
-
-def hugging_face_pipeline(hf_auth:str, model_id='meta-llama/Llama-2-13b-chat-hf', **kwargs):
+def hugging_face_pipeline(hf_auth:str="", model_id='meta-llama/Llama-2-13b-chat-hf', **kwargs):
     """ Adapted from https://www.pinecone.io/learn/llama-2/ """
+
+    if not hf_auth:
+        hf_auth = os.getenv('HF_AUTH')
 
     # set quantization configuration to load large model with less GPU memory
     # this requires the `bitsandbytes` library
@@ -50,7 +53,7 @@ def hugging_face_pipeline(hf_auth:str, model_id='meta-llama/Llama-2-13b-chat-hf'
     return generate_text
 
 
-def hugging_face_llm(hf_auth:str, **kwargs) -> HuggingFacePipeline:
+def hugging_face_llm(hf_auth:str="", **kwargs) -> HuggingFacePipeline:
     llm = HuggingFacePipeline(pipeline=hugging_face_pipeline(hf_auth, **kwargs))
     return llm
 
