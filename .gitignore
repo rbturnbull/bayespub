@@ -167,3 +167,4 @@ pinecone.py
 tagging-all.py
 tagging.py
 torch-deps.txt
+*.ipynb
