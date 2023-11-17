@@ -7,6 +7,9 @@ from rich.progress import track
 
 app = typer.Typer()
 
+import warnings
+warnings.filterwarnings('ignore')
+
 
 @app.command()
 def is_bayesian(
@@ -25,23 +28,24 @@ def is_bayesian(
 
     # find already processed pmids
     processed = set()
-    with open(output_path) as f:
-        for line in f:
-            pmid = line.split(",")[0]
-            if not pmid.isdigit():
-                continue
-            processed.add(pmid)
+    if output_path.exists():
+        with open(output_path) as f:
+            for line in f:
+                pmid = line.split(",")[0]
+                if not pmid.isdigit():
+                    continue
+                processed.add(pmid)
 
     todo = pmids - processed
 
     with open(output_path, "a") as f:
         if len(processed) == 0:
-            print("pmid", "is_bayesian", sep=",")
+            print("pmid", "is_bayesian", sep=",", file=f, flush=True)
 
         for pmid in track(todo, description="Processing"):
             result = chain.invoke(pmid)
-            print(pmid, result, sep="\,", file=f, flush=True)
-            print(pmid, result, sep="\,", flush=True)
+            print(pmid, result, sep=",", file=f, flush=True)
+            print(pmid, result, sep=",", flush=True)
 
 
 
