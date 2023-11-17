@@ -1,8 +1,13 @@
 from typing import Optional
 from pathlib import Path
 import xml.etree.ElementTree as ET
+from bs4 import BeautifulSoup
 from langchain.schema.runnable import Runnable
 from langchain.schema.runnable.config import RunnableConfig
+
+
+def get_text(el) -> str:
+    return BeautifulSoup(ET.tostring(el, encoding='unicode'), 'lxml').get_text().strip()
 
 
 class PubMedParser(Runnable):
@@ -13,15 +18,15 @@ class PubMedParser(Runnable):
         file = self.base_path/f"{pmid}.xml"
         text = file.read_text()
         article = ET.fromstring(text)
-        title = article.find('.//ArticleTitle').text or ""
+        title = get_text(article.find('.//ArticleTitle')) or ""
         try:
-            abstract = "\n".join([el.text for el in article.findall('.//AbstractText')])
-        except Exception:
-            print(f"# unable to read abstract in {pmid}")
+            abstract = "\n".join([get_text(el) for el in article.findall('.//AbstractText')])
+        except Exception as err:
+            print(f"# unable to read abstract in {pmid}: {err}")
             abstract = "No abstract"
 
         try:
-            keywords = "\n".join([el.text for el in article.findall('.//Keyword')])
+            keywords = "\n".join([get_text(el) for el in article.findall('.//Keyword')])
         except Exception:
             keywords = ""
 

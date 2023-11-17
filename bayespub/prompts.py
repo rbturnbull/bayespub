@@ -33,5 +33,6 @@ def is_bayesian_prompt():
             "Format your answer with a single character: either 'y' for yes or 'n' for no.  Do not give any more information than that.",
         question = 
             "Does this journal article discuss Bayesian statistics? \n"
-            "NOTE: just using the Bayesian information criterion (BIC) is not sufficient for an article to discuss Bayesian statistics.",
+            "NOTE: Just using the Bayesian information criterion (BIC) is not sufficient for an article to discuss Bayesian statistics.\n"
+            "If the article discusses a posterior probability distribution, then answer 'y'.",
     )
