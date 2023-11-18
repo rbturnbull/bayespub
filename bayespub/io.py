@@ -38,3 +38,16 @@ class PubMedParser(Runnable):
         )
 
 
+
+class OutputResult(Runnable):
+    def __init__(self, output_path:Path, mode:str="a"):
+        self.file = open(output_path, mode)
+
+    def invoke(self, result:dict, config: Optional[RunnableConfig] = None):
+        pmid = result.pop("pmid")
+        print(pmid, ",".join([str(value) for value in result.values()]), file=self.file, flush=True, sep=",")
+        return result
+    
+    def __del__(self):
+        if not self.file.closed:
+            self.file.close()
