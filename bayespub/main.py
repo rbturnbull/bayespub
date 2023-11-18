@@ -3,6 +3,8 @@ from typing_extensions import Annotated
 from pathlib import Path
 from bayespub.chains import is_bayesian_splitter_chain, summarize_splitter_chain
 from rich.progress import track
+from langchain.globals import set_debug, set_verbose
+
 
 app = typer.Typer()
 
@@ -54,6 +56,8 @@ def summarize(
     output_path: Path,
     hf_auth:Annotated[str, typer.Argument(envvar=["HF_AUTH"])]="",
     use_hf:bool=True,
+    debug:bool=False,
+    verbose:bool=False,
 ):
     # find all pmids
     files = Path(base_path).glob("*.xml")
@@ -73,6 +77,10 @@ def summarize(
                 processed.add(pmid)
 
     todo = pmids - processed
+
+    set_debug(debug)
+    set_verbose(verbose)
+
 
     chain = summarize_splitter_chain(base_path=base_path, output_path=output_path, hf_auth=hf_auth, use_hf=use_hf)
 

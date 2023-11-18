@@ -63,9 +63,9 @@ def summarize_chain_map_reduce(hf_auth:str="", use_hf:bool=True, openai_api_key=
     splitter = PubMedSplitter(chunk_size, chunk_overlap)
     chain = summarize_chain(hf_auth, use_hf, **kwargs)
     prompt = summary_synthesize_prompt()
-    breakpoint()
+    llm = chain.middle[0]
 
-    return splitter | chain.map() | concatenate_summaries | prompt
+    return splitter | chain.map() | concatenate_summaries | prompt | llm | StrOutputParser()
 
 
 def summarize_splitter_chain(base_path:Path, hf_auth:str="", use_hf:bool=True, chunk_size:int=6_000, chunk_overlap:int=200, **kwargs):
