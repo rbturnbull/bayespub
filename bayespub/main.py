@@ -40,11 +40,12 @@ def is_bayesian(
     with open(output_path, "a") as f:
         if len(processed) == 0:
             print("pmid", "is_bayesian", sep=",", file=f, flush=True)
-
         for pmid in track(todo, description="Processing"):
-            result = chain.invoke(pmid)
-            print(pmid, result, sep=",", file=f, flush=True)
-            print(pmid, result, sep=",", flush=True)
+            try:
+                result = chain.invoke(pmid)
+                print(pmid, result, sep=",", file=f, flush=True)
+            except ValueError as err:
+                print(f"Error reading pmid {pmid}:\n{err}")
 
 
 @app.command()
