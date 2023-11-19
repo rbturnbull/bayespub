@@ -82,16 +82,20 @@ def summarize(
     set_verbose(verbose)
 
 
-    chain = summarize_splitter_chain(base_path=base_path, output_path=output_path, hf_auth=hf_auth, use_hf=use_hf)
+    chain = summarize_splitter_chain(base_path=base_path, hf_auth=hf_auth, use_hf=use_hf)
 
     with open(output_path, "a") as f:
         if len(processed) == 0:
             print("pmid", "summary", sep=",", file=f, flush=True)
 
         for pmid in track(todo, description="Processing"):
-            result = chain.invoke(pmid)
-            print(pmid, result, sep=",", file=f, flush=True)
-            print(pmid, result, sep=",", flush=True)
+            try:
+                result = chain.invoke(pmid).strip().replace("\n", " ")
+                print(pmid, result, sep=",", file=f, flush=True)
+                print(pmid, result, sep=",", flush=True)
+            except Exception as err:
+                print(f"cannot summarize {pmid}: {err}")
+
 
 
 

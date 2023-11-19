@@ -7,7 +7,7 @@ license = "Apache-2.0"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.11,<3.13"
+python = ">=3.10,<3.13"
 torch = "=2.0.0"
 transformers = "^4.31.0"
 accelerate = "^0.24.1"
@@ -23,6 +23,7 @@ uvicorn = "^0.24.0.post1"
 lxml = "^4.9.3"
 beautifulsoup4 = "^4.12.2"
 rich = "^13.7.0"
+sentence-transformers = "^2.2.2"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.26.0"
