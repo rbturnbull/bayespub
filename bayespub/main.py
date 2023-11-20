@@ -12,6 +12,7 @@ from langchain.vectorstores import Chroma
 
 from .embeddings import get_bge_embeddings
 from .io import parse_pubmed_entry
+from .api import server
 
 app = typer.Typer()
 
@@ -164,6 +165,14 @@ def filter_pubmed(output_dir:Path, output_csv:Path, gzip_files:List[Path]):
                         ET.ElementTree(entry).write(output_xml, encoding="utf-8")
 
                     print(pmid, date, int(bayesian), metadata["work_title"], metadata["issn"], sep=",", file=output)
+
+
+@app.command()
+def serve(base_path: Path, hf_auth:str="", use_hf:bool=True, port:int=8000):
+    api_app = server(base_path=base_path, use_hf=use_hf)
+    import uvicorn
+
+    uvicorn.run(api_app, host="localhost", port=port)
 
 
 if __name__ == "__main__":

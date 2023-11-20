@@ -1,4 +1,3 @@
-
 from pathlib import Path
 from langchain.chat_models import ChatOpenAI
 from langchain.schema.output_parser import StrOutputParser
@@ -9,7 +8,14 @@ from langchain.schema.runnable.passthrough import RunnablePassthrough
 from .io import OutputResult
 from .huggingface import hugging_face_llm
 from .io import PubMedParser
-from .prompts import is_bayesian_prompt, summarize_prompt, summary_synthesize_prompt, summarize_prompt_full, summary_synthesize_prompt_full
+from .prompts import (
+    bayespub_prompt, 
+    is_bayesian_prompt, 
+    summarize_prompt, 
+    summary_synthesize_prompt, 
+    summarize_prompt_full, 
+    summary_synthesize_prompt_full,
+)
 from .parsers import YesNoOutputParser
 from .splitters import PubMedSplitter
 from .reducers import reduce_any, concatenate_summaries
@@ -77,6 +83,23 @@ def summarize_splitter_chain(base_path:Path, hf_auth:str="", use_hf:bool=True, c
     )
     return parser | summarize_branch_chain | StrOutputParser()
 
+
+def single_pmid_question_chain(base_path:Path, hf_auth:str="", use_hf:bool=True, openai_api_key="", **kwargs):
+    from langserve.schema import CustomUserType
+
+    class InputType(CustomUserType):
+        pmid:int
+        system:str
+        question:str
+
+    parser = PubMedParser(base_path).with_types(
+        input_type=InputType,
+    )
+
+    prompt = bayespub_prompt()
+    llm = hugging_face_llm(hf_auth, **kwargs) if use_hf else ChatOpenAI(openai_api_key=openai_api_key)
+
+    return parser | prompt | llm | StrOutputParser()
 
 
 

@@ -9,7 +9,7 @@ from langchain.schema.runnable import Runnable
 from langchain.schema.runnable.config import RunnableConfig
 import datetime
 from rich.progress import track
-
+from langserve.schema import CustomUserType
 
 def get_text(el) -> str:
     if el is None:
@@ -88,12 +88,24 @@ class PubMedParser(Runnable):
     def __init__(self, base_path:Path):
         self.base_path = Path(base_path)
 
-    def invoke(self, pmid:str, config: Optional[RunnableConfig] = None):
+    def invoke(self, data:str|dict, config: Optional[RunnableConfig] = None):
+        if isinstance(data, CustomUserType):
+            data = data.dict()
+
+        if isinstance(data, (str, int)):
+            pmid = str(data)
+            data = {}
+        else:
+            pmid = data['pmid']
         file = self.base_path/f"{pmid}.xml"
         text = file.read_text().strip()
         entry = ET.fromstring(text)
-        return parse_pubmed_entry(entry)
+        result = parse_pubmed_entry(entry)
 
+        data.update(result)
+
+        return data
+    
 
 class OutputResult(Runnable):
     def __init__(self, output_path:Path, mode:str="a"):
