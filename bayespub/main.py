@@ -141,7 +141,7 @@ def filter_pubmed(output_dir:Path, output_csv:Path, gzip_files:List[Path]):
         "posterior distribution",
     ]    
     with open(output_csv, "w") as output:
-        print("pmid", "date", "potentially_bayesian", sep=",", file=output)
+        print("pmid", "date", "potentially_bayesian", "work_title", "issn", sep=",", file=output)
         for gzip_file in track(gzip_files):
             print(gzip_file)
             with gzip.open(gzip_file) as f:
@@ -164,7 +164,7 @@ def filter_pubmed(output_dir:Path, output_csv:Path, gzip_files:List[Path]):
                         output_xml = output_dir/f"{pmid}.xml"
                         ET.ElementTree(entry).write(output_xml, encoding="utf-8")
 
-                    print(pmid, date, int(bayesian), sep=",", file=output)
+                    print(pmid, date, int(bayesian), metadata["work_title"], metadata["issn"], sep=",", file=output)
 
 
 if __name__ == "__main__":

@@ -11,6 +11,8 @@ from rich.progress import track
 
 
 def get_text(el) -> str:
+    if el is None:
+        return ""
     return BeautifulSoup(ET.tostring(el, encoding='unicode'), 'lxml').get_text().strip()
 
 
@@ -31,6 +33,9 @@ def parse_pubmed_entry(entry) -> dict:
     """
     pmid = entry.find('.//PMID').text
     title = get_text(entry.find('.//ArticleTitle')) or ""
+    issn = get_text(entry.find('.//ISSN')) or ""
+    work_title = get_text(entry.find('.//Title')) or ""
+
     try:
         abstract = "\n".join([get_text(el) for el in entry.findall('.//AbstractText')])
     except Exception as err:
@@ -66,6 +71,8 @@ def parse_pubmed_entry(entry) -> dict:
     return dict(
         pmid=pmid,
         title=title,
+        issn=issn,
+        work_title=work_title,
         abstract=abstract,
         keywords=keywords,
         date=date_string,
@@ -74,7 +81,6 @@ def parse_pubmed_entry(entry) -> dict:
         month=month,
         day=day,
     )
-
 
 
 class PubMedParser(Runnable):
