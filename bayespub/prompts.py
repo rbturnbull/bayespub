@@ -79,7 +79,6 @@ def summarize_prompt_full():
             "Write a very concise summary of the article. Your summary should be no more than 100 words long. \n"
             "Include the main topic, findings, methodological approach, novelty of the methodological approach, "
             "and how Bayesian statistics relates to the methodology.\n"
-            # "Respond with just the summary text on a single line and do not include an introductory message.\n",
     )
 
 

@@ -24,6 +24,8 @@ lxml = "^4.9.3"
 beautifulsoup4 = "^4.12.2"
 rich = "^13.7.0"
 sentence-transformers = "^2.2.2"
+chromadb = "^0.4.17"
+lark = "^1.1.8"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.26.0"

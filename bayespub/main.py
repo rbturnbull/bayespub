@@ -2,8 +2,12 @@ import typer
 from typing_extensions import Annotated
 from pathlib import Path
 from bayespub.chains import is_bayesian_splitter_chain, summarize_splitter_chain
+from bayespub.io import summaries_to_docs
 from rich.progress import track
 from langchain.globals import set_debug, set_verbose
+from langchain.vectorstores import Chroma
+
+from .embeddings import get_bge_embeddings
 
 
 app = typer.Typer()
@@ -58,6 +62,7 @@ def summarize(
     use_hf:bool=True,
     debug:bool=False,
     verbose:bool=False,
+    full:bool=False,
 ):
     # find all pmids
     files = Path(base_path).glob("*.xml")
@@ -81,8 +86,7 @@ def summarize(
     set_debug(debug)
     set_verbose(verbose)
 
-
-    chain = summarize_splitter_chain(base_path=base_path, hf_auth=hf_auth, use_hf=use_hf)
+    chain = summarize_splitter_chain(base_path=base_path, hf_auth=hf_auth, use_hf=use_hf, full=full)
 
     with open(output_path, "a") as f:
         if len(processed) == 0:
@@ -99,5 +103,29 @@ def summarize(
 
 
 
+
+@app.command()
+def embed_summaries(
+    csv: Path,
+    base_path: Path, 
+    output_path: Path,
+    name:str="summaries",
+    model_name:str="BAAI/bge-base-en",
+):
+    docs = summaries_to_docs(csv, base_path)
+    ids = [doc.metadata['pmid'] for doc in docs]
+    embeddings = get_bge_embeddings(model_name=model_name)
+    vectorstore = Chroma.from_documents(
+        documents=docs, 
+        embedding=embeddings, 
+        ids=ids, 
+        persist_directory=str(output_path),
+        collection_name=name,
+    )
+    return vectorstore
+
+
+
 if __name__ == "__main__":
     app()
+
