@@ -1,4 +1,7 @@
 import typer
+from typing import List
+import gzip
+import xml.etree.ElementTree as ET
 from typing_extensions import Annotated
 from pathlib import Path
 from bayespub.chains import is_bayesian_splitter_chain, summarize_splitter_chain
@@ -8,7 +11,7 @@ from langchain.globals import set_debug, set_verbose
 from langchain.vectorstores import Chroma
 
 from .embeddings import get_bge_embeddings
-
+from .io import parse_pubmed_entry
 
 app = typer.Typer()
 
@@ -126,6 +129,44 @@ def embed_summaries(
     )
     return vectorstore
 
+
+@app.command()
+def filter_pubmed(output_dir:Path, output_csv:Path, gzip_files:List[Path]):
+    search_terms = [
+        "bayes",
+        "gibbs sampl",
+        "mcmc",
+        "markov-chain monte carlo",
+        "markov chain monte carlo",
+        "credible interval",
+        "prior distribution",
+        "posterior distribution",
+    ]    
+    with open(output_csv, "w") as output:
+        print("pmid", "date", "potentially_bayesian", "work_title", "issn", sep=",", file=output)
+        for gzip_file in track(gzip_files):
+            print(gzip_file)
+            with gzip.open(gzip_file) as f:
+                text = f.read()
+                entries = ET.fromstring(text)
+                for entry in entries:
+                    metadata = parse_pubmed_entry(entry)
+                    pmid = metadata['pmid']
+                    date = metadata['date']
+
+                    text_to_search = metadata['title'].lower() + metadata['abstract'].lower() + metadata['keywords'].lower()
+
+                    bayesian = False
+                    for search_term in search_terms:
+                        if search_term in text_to_search:
+                            bayesian = True
+                            break
+
+                    if bayesian:
+                        output_xml = output_dir/f"{pmid}.xml"
+                        ET.ElementTree(entry).write(output_xml, encoding="utf-8")
+
+                    print(pmid, date, int(bayesian), metadata["work_title"], metadata["issn"], sep=",", file=output)
 
 
 if __name__ == "__main__":
