@@ -110,11 +110,13 @@ def embed_summaries(
     base_path: Path, 
     output_path: Path,
     name:str="summaries",
-    model_name:str="BAAI/bge-base-en",
+    model_name:str="BAAI/bge-large-en",
 ):
+    print(f"Reading summaries {csv}")    
     docs = summaries_to_docs(csv, base_path)
     ids = [doc.metadata['pmid'] for doc in docs]
     embeddings = get_bge_embeddings(model_name=model_name)
+    print(f"Building embedding database {output_path}")
     vectorstore = Chroma.from_documents(
         documents=docs, 
         embedding=embeddings, 

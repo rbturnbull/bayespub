@@ -3,6 +3,7 @@ import re
 from pathlib import Path
 import xml.etree.ElementTree as ET
 from bs4 import BeautifulSoup
+from rich.progress import track
 from langchain.schema import Document
 from langchain.schema.runnable import Runnable
 from langchain.schema.runnable.config import RunnableConfig
@@ -83,7 +84,7 @@ def summaries_to_docs(csv:Path, base_path:Path):
     parser = PubMedParser(base_path=base_path)
     documents = []
     with open(csv) as f:
-        for index, line in enumerate(f):
+        for index, line in track(enumerate(f)):
             m = re.match(r"^(\d+),(.*)", line)
             if m:
                 pmid,summary = m.group(1), m.group(2)
@@ -93,12 +94,11 @@ def summaries_to_docs(csv:Path, base_path:Path):
                     pmid=pmid,
                     title=details['title'],
                     date=details['date'],
+                    year=details['year'],
                     ordinal_date=details['ordinal_date'],
                     year=details['year'],
                 )
                 document= Document(page_content=summary, metadata=metadata)
                 documents.append(document)
-                if index % 1000 == 0:
-                    print(index)
 
     return documents
