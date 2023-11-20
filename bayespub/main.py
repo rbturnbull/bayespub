@@ -104,9 +104,6 @@ def summarize(
                 print(f"cannot summarize {pmid}: {err}")
 
 
-
-
-
 @app.command()
 def embed_summaries(
     csv: Path,

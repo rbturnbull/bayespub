@@ -90,6 +90,7 @@ class PubMedParser(Runnable):
 
     def invoke(self, pmid:str, config: Optional[RunnableConfig] = None):
         file = self.base_path/f"{pmid}.xml"
+        text = file.read_text().strip()
         entry = ET.fromstring(text)
         return parse_pubmed_entry(entry)
 
@@ -112,8 +113,12 @@ def summaries_to_docs(csv:Path, base_path:Path):
     parser = PubMedParser(base_path=base_path)
     documents = []
     with open(csv) as f:
-        for index, line in track(enumerate(f)):
-            m = re.match(r"^(\d+),(.*)", line)
+        # Count lines for tracker
+        line_count = sum(1 for _ in f)
+        f.seek(0)
+
+        for line in track(f, total=line_count):
+            m = re.match(r"^(\d+)[\t,](.*)", line)
             if m:
                 pmid,summary = m.group(1), m.group(2)
                 details = parser.invoke(pmid)
@@ -122,9 +127,9 @@ def summaries_to_docs(csv:Path, base_path:Path):
                     pmid=pmid,
                     title=details['title'],
                     date=details['date'],
-                    year=details['year'],
                     ordinal_date=details['ordinal_date'],
                     year=details['year'],
+                    work_title=details['work_title'],
                 )
                 document= Document(page_content=summary, metadata=metadata)
                 documents.append(document)
