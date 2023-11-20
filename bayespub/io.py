@@ -7,9 +7,74 @@ from langchain.schema import Document
 from langchain.schema.runnable import Runnable
 from langchain.schema.runnable.config import RunnableConfig
 import datetime
+from rich.progress import track
+
 
 def get_text(el) -> str:
     return BeautifulSoup(ET.tostring(el, encoding='unicode'), 'lxml').get_text().strip()
+
+
+def parse_pubmed_entry(entry) -> dict:
+    """
+    Reads the XML representation of a citation as text and returns a dictionary with metadata.
+
+    Includes:
+        - pmid
+        - title
+        - abstract
+        - keywords
+        - date
+        - ordinal_date
+        - year
+        - month
+        - day
+    """
+    pmid = entry.find('.//PMID').text
+    title = get_text(entry.find('.//ArticleTitle')) or ""
+    try:
+        abstract = "\n".join([get_text(el) for el in entry.findall('.//AbstractText')])
+    except Exception as err:
+        print(f"# unable to read abstract in {pmid}: {err}")
+        abstract = "No abstract"
+
+    try:
+        keywords = "\n".join([get_text(el) for el in entry.findall('.//Keyword')])
+    except Exception:
+        keywords = ""
+
+    date = entry.find(".//ArticleDate")
+    if date is None:
+        date = entry.find(".//DateCompleted")
+
+    if date is None:
+        date = entry.find(".//DateRevised")
+
+    if date:
+        year = int(date.find("Year").text)
+        month = int(date.find("Month").text)
+        day = int(date.find("Day").text)
+        date_string = f"{year}-{month}-{day}"   
+        date = datetime.date(year,month,day)    
+        ordinal_date = date.toordinal()
+    else:
+        year = 0
+        month = 0
+        day = 0
+        ordinal_date = 0     
+        date_string = ""
+
+    return dict(
+        pmid=pmid,
+        title=title,
+        abstract=abstract,
+        keywords=keywords,
+        date=date_string,
+        ordinal_date=ordinal_date,     
+        year=year,
+        month=month,
+        day=day,
+    )
+
 
 
 class PubMedParser(Runnable):
@@ -18,51 +83,8 @@ class PubMedParser(Runnable):
 
     def invoke(self, pmid:str, config: Optional[RunnableConfig] = None):
         file = self.base_path/f"{pmid}.xml"
-        text = file.read_text()
-        article = ET.fromstring(text)
-        title = get_text(article.find('.//ArticleTitle')) or ""
-        try:
-            abstract = "\n".join([get_text(el) for el in article.findall('.//AbstractText')])
-        except Exception as err:
-            print(f"# unable to read abstract in {pmid}: {err}")
-            abstract = "No abstract"
-
-        try:
-            keywords = "\n".join([get_text(el) for el in article.findall('.//Keyword')])
-        except Exception:
-            keywords = ""
-
-        date = article.find(".//ArticleDate")
-        if date is None:
-            date = article.find(".//DateCompleted")
-
-        if date is None:
-            date = article.find(".//DateRevised")
-
-        if date:
-            year = int(date.find("Year").text)
-            month = int(date.find("Month").text)
-            day = int(date.find("Day").text)
-            date_string = f"{year}-{month}-{day}"   
-            date = datetime.date(year,month,day)    
-            ordinal_date = date.toordinal()
-        else:
-            year = 0
-            month = 0
-            day = 0
-            ordinal_date = 0     
-
-        return dict(
-            pmid=pmid,
-            title=title,
-            abstract=abstract,
-            keywords=keywords,
-            date=date_string,
-            ordinal_date=ordinal_date,     
-            year=year,
-            month=month,
-            day=day,
-        )
+        entry = ET.fromstring(text)
+        return parse_pubmed_entry(entry)
 
 
 class OutputResult(Runnable):
@@ -102,3 +124,5 @@ def summaries_to_docs(csv:Path, base_path:Path):
                     print(index)
 
     return documents
+
+
