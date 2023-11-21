@@ -4,6 +4,7 @@ from langchain.schema.output_parser import StrOutputParser
 from langchain.schema.runnable.branch import RunnableBranch
 from langchain.schema.runnable import RunnableParallel
 from langchain.schema.runnable.passthrough import RunnablePassthrough
+from langchain.vectorstores import Chroma
 
 from .io import OutputResult
 from .huggingface import hugging_face_llm
@@ -15,7 +16,9 @@ from .prompts import (
     summary_synthesize_prompt, 
     summarize_prompt_full, 
     summary_synthesize_prompt_full,
+    bayespub_rag_prompt,
 )
+from .embeddings import get_bge_embeddings
 from .parsers import YesNoOutputParser
 from .splitters import PubMedSplitter
 from .reducers import reduce_any, concatenate_summaries
@@ -84,7 +87,7 @@ def summarize_splitter_chain(base_path:Path, hf_auth:str="", use_hf:bool=True, c
     return parser | summarize_branch_chain | StrOutputParser()
 
 
-def single_pmid_question_chain(base_path:Path, hf_auth:str="", use_hf:bool=True, openai_api_key="", **kwargs):
+def single_pmid_question_chain(base_path:Path, hf_auth:str="", use_hf:bool=True, openai_api_key="", llm=None, **kwargs):
     from langserve.schema import CustomUserType
 
     class InputType(CustomUserType):
@@ -97,9 +100,32 @@ def single_pmid_question_chain(base_path:Path, hf_auth:str="", use_hf:bool=True,
     )
 
     prompt = bayespub_prompt()
-    llm = hugging_face_llm(hf_auth, **kwargs) if use_hf else ChatOpenAI(openai_api_key=openai_api_key)
+    llm = llm or (hugging_face_llm(hf_auth, **kwargs) if use_hf else ChatOpenAI(openai_api_key=openai_api_key))
 
     return parser | prompt | llm | StrOutputParser()
 
+
+def rag_chain(
+    embeddings_db:Path, 
+    embeddings_model_name:str="BAAI/bge-large-en", 
+    llm=None, 
+    hf_auth:str="", 
+    use_hf:bool=True, 
+    openai_api_key="",
+    context_count:int=5,
+):
+    embeddings = get_bge_embeddings(model_name=embeddings_model_name)
+    db = Chroma(persist_directory=str(embeddings_db), embedding_function=embeddings)
+    retriever = db.as_retriever(search_kwargs={"k": context_count})
+    prompt = bayespub_rag_prompt()
+    llm = llm or (hugging_face_llm(hf_auth, **kwargs) if use_hf else ChatOpenAI(openai_api_key=openai_api_key))
+
+    chain = (
+        {"context": retriever, "question": RunnablePassthrough()}
+        | prompt
+        | llm
+        | StrOutputParser()
+    )
+    return chain
 
 

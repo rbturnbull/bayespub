@@ -116,15 +116,17 @@ def embed_summaries(
     print(f"Reading summaries {csv}")    
     docs = summaries_to_docs(csv, base_path)
     ids = [doc.metadata['pmid'] for doc in docs]
+    
     embeddings = get_bge_embeddings(model_name=model_name)
+    
     print(f"Building embedding database {output_path}")
     vectorstore = Chroma.from_documents(
         documents=docs, 
         embedding=embeddings, 
         ids=ids, 
         persist_directory=str(output_path),
-        collection_name=name,
     )
+
     return vectorstore
 
 
@@ -168,10 +170,10 @@ def filter_pubmed(output_dir:Path, output_csv:Path, gzip_files:List[Path]):
 
 
 @app.command()
-def serve(base_path: Path, hf_auth:str="", use_hf:bool=True, port:int=8000):
-    api_app = server(base_path=base_path, use_hf=use_hf)
-    import uvicorn
+def serve(base_path: Path, full_db:Path=None, method_db:Path=None, hf_auth:str="", use_hf:bool=True, port:int=8000):
+    api_app = server(base_path=base_path, full_db_path=full_db, method_db_path=method_db, use_hf=use_hf)
 
+    import uvicorn
     uvicorn.run(api_app, host="localhost", port=port)
 
 

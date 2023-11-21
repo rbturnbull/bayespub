@@ -185,3 +185,25 @@ def summary_synthesize_prompt_full():
         template=template,
     )
     return prompt
+
+
+def bayespub_rag_prompt():
+    template = """<s>[INST] <<SYS>>
+    You are an academic who is familiar with both Bayesian and Frequentist statistics.
+    You have strong general knowledge of medical academic literature.
+    Answer the question '{question}' based on the context.
+    <</SYS>>
+
+    Context:
+    {context}
+
+    Question:
+    {question}
+    [/INST]
+    """
+
+    prompt = PromptTemplate(
+        input_variables=["question", "context"],
+        template=template,
+    )
+    return prompt
