@@ -5,6 +5,8 @@ from langchain.schema.runnable.branch import RunnableBranch
 from langchain.schema.runnable import RunnableParallel
 from langchain.schema.runnable.passthrough import RunnablePassthrough
 from langchain.vectorstores import Chroma
+from operator import itemgetter
+from langchain.schema.runnable import RunnableMap
 
 from .io import OutputResult
 from .huggingface import hugging_face_llm
@@ -19,7 +21,7 @@ from .prompts import (
     bayespub_rag_prompt,
 )
 from .embeddings import get_bge_embeddings
-from .parsers import YesNoOutputParser
+from .parsers import YesNoOutputParser, RagParser
 from .splitters import PubMedSplitter
 from .reducers import reduce_any, concatenate_summaries
 
@@ -120,12 +122,38 @@ def rag_chain(
     prompt = bayespub_rag_prompt()
     llm = llm or (hugging_face_llm(hf_auth, **kwargs) if use_hf else ChatOpenAI(openai_api_key=openai_api_key))
 
+    # class InputType(CustomUserType):
+    #     system:str
+    #     question:str
+
     chain = (
         {"context": retriever, "question": RunnablePassthrough()}
         | prompt
         | llm
         | StrOutputParser()
     )
-    return chain
+
+    def format_docs(docs):
+        return "\n\n".join(doc.page_content for doc in docs)
+
+
+    # Adapted from https://python.langchain.com/docs/use_cases/question_answering/
+    rag_chain_from_docs = (
+        {
+            "context": lambda input: format_docs(input["documents"]),
+            "question": itemgetter("question"),
+        }
+        | prompt
+        | llm
+        | StrOutputParser()
+    )
+    rag_chain_with_source = RunnableMap(
+        {"documents": retriever, "question": RunnablePassthrough()}
+    ) | {
+        "documents": lambda input: [doc.metadata for doc in input["documents"]],
+        "answer": rag_chain_from_docs,
+    } | RagParser()
+
+    return rag_chain_with_source
 
 
