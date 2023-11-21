@@ -18,10 +18,10 @@ class RagParser(Runnable):
     def invoke(self, result, config: Optional[RunnableConfig] = None) -> bool:
         text = result['answer']
         text += "\n----------------------\n"
-        for document in result['documents']:
+        for i, document in enumerate(result['documents']):
             pmid = document['pmid']
             title = document['title']
             date = document['date']
-            text += f"{title} ({date}) - https://pubmed.ncbi.nlm.nih.gov/{pmid}\n\n"
+            text += f"[{i+1}] {title} ({date}) - https://pubmed.ncbi.nlm.nih.gov/{pmid}\n\n"
 
         return text

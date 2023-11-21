@@ -41,7 +41,7 @@ def server(
     )
 
     if full_db_path and full_db_path.exists():
-        rag = rag_chain(full_db_path, llm=llm, embeddings_model_name=embeddings_model_name)
+        rag = rag_chain(full_db_path, llm=llm, embeddings_model_name=embeddings_model_name, context_count=10)
         add_routes(
             app,
             rag,
@@ -49,7 +49,7 @@ def server(
         )    
 
     if method_db_path and method_db_path.exists():
-        rag = rag_chain(method_db_path, llm=llm, embeddings_model_name=embeddings_model_name)
+        rag = rag_chain(method_db_path, llm=llm, embeddings_model_name=embeddings_model_name, context_count=20)
         add_routes(
             app,
             rag,

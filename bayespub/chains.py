@@ -134,7 +134,11 @@ def rag_chain(
     )
 
     def format_docs(docs):
-        return "\n\n".join(doc.page_content for doc in docs)
+        text = ""
+        for i, doc in enumerate(docs):
+            text += f"\n\n[{i+1}] {doc.page_content}"
+        
+        return text
 
 
     # Adapted from https://python.langchain.com/docs/use_cases/question_answering/
